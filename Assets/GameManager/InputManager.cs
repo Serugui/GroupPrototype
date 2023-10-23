@@ -14,7 +14,7 @@ public class InputManager : MonoBehaviour
 
     void Start()
     {
-        ToggleActionMap(inputActions.Player);
+        ToggleActionMap(inputActions.Drive);
     }
 
     public void ToggleActionMap(InputActionMap actionMap)
