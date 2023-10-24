@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -17,6 +18,6 @@ public class GameManager : MonoBehaviour
         }
         Instance = this;
 
-        InputManager = new InputManager();
+        InputManager = this.AddComponent<InputManager>();
     }
 }
