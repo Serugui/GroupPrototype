@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -25,6 +26,21 @@ public class DriveLocomotion : MonoBehaviour
 
     Vector3 moveDirection = Vector3.zero;
     float rotateYaw, rotatePitch;
+
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Nitro")
+        {
+
+            maxSpeed = (20F);
+            accelerationMutliplier = (20f);
+
+        }
+    }
+
+   
+   
 
     void Start()
     {
@@ -77,7 +93,7 @@ public class DriveLocomotion : MonoBehaviour
             float breaking = brakePedal.ReadValue<float>();
             float turning = turn.ReadValue<Vector2>().x;
 
-            drag = 1 - defaultDrag - (breakDrag * breaking);
+            drag = 6 - defaultDrag - (breakDrag * breaking);
 
             speed += acceleration * accelerationMutliplier;
             speed *= drag;
@@ -112,7 +128,13 @@ public class DriveLocomotion : MonoBehaviour
 
         //rotatePitch -= lookInput.y * mouseSensitivity;
         //rotatePitch = Mathf.Clamp(rotatePitch, lookUpClamp, lookDownClamp);
-
+        
         //cameraContainer.transform.localRotation = Quaternion.Euler(rotatePitch, rotateYaw, 0f);
     }
+  
+
+
+
+
+
 }
