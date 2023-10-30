@@ -16,7 +16,7 @@ public class DriveLocomotion : MonoBehaviour
     float speed = 0f;
     float accelerationMutliplier = 0.2f;
     float defaultDrag = 0.01f;
-    float breakDrag = 0.1f;
+    float breakDrag = 1f;
     float drag = 0.2f;
 
     public float mouseSensitivity = 0.2f;
@@ -33,14 +33,24 @@ public class DriveLocomotion : MonoBehaviour
         if (other.tag == "Nitro")
         {
 
-            maxSpeed = (20F);
-            accelerationMutliplier = (20f);
+            StartCoroutine(Nitro());
+
 
         }
     }
 
-   
-   
+    IEnumerator Nitro()
+    {
+        
+        print(Time.time);
+        yield return new WaitForSeconds(1);
+        print(Time.time);
+        maxSpeed = (20F);
+        accelerationMutliplier = (20f);
+    }
+
+
+
 
     void Start()
     {
