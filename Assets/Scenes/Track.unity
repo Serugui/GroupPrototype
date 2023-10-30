@@ -11896,7 +11896,7 @@ GameObject:
   - component: {fileID: 1935704263}
   - component: {fileID: 1935704262}
   m_Layer: 6
-  m_Name: Capsule
+  m_Name: Nitro
   m_TagString: Nitro
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

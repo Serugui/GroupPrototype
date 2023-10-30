@@ -39,14 +39,18 @@ public class DriveLocomotion : MonoBehaviour
         }
     }
 
+    //the nitro Boost
     IEnumerator Nitro()
     {
         
         print(Time.time);
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(0);
         print(Time.time);
         maxSpeed = (20F);
         accelerationMutliplier = (20f);
+        yield return new WaitForSeconds(5);
+        maxSpeed = 10f;
+        accelerationMutliplier = (0.2f);
     }
 
 
