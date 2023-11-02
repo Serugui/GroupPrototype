@@ -149,15 +149,11 @@ public class DriveLocomotionV2 : MonoBehaviour
     {
         float turning = turn.ReadValue<Vector2>().x;
 
-        // smoothing and limits
-        turning = Mathf.Clamp(steeringAxis - (Time.deltaTime * 10f * steeringSpeed * turning), -1f, 1f);
-
-        // steering angle
-        var steeringAngle = steeringAxis * maxSteeringAngle;
-
         // Apply steering angle to your wheel colliders
-        frontLeftCollider.steerAngle = Mathf.Lerp(frontLeftCollider.steerAngle, steeringAngle, steeringSpeed);
-        frontRightCollider.steerAngle = Mathf.Lerp(frontRightCollider.steerAngle, steeringAngle, steeringSpeed);
+        var steeringAngle = turning * maxSteeringAngle;
+
+        frontLeftCollider.steerAngle = steeringAngle;
+        frontRightCollider.steerAngle = steeringAngle;
     }
 
     void ThrottleOn()
@@ -170,7 +166,11 @@ public class DriveLocomotionV2 : MonoBehaviour
         // If the car is going backwards, apply brakes to avoid strange behaviors.
         if (localVelocityZ < -1f)
         {
-            return;
+            // Apply brakes to stop the car from moving backward.
+            frontLeftCollider.brakeTorque = brakeForce;
+            frontRightCollider.brakeTorque = brakeForce;
+            rearLeftCollider.brakeTorque = brakeForce;
+            rearRightCollider.brakeTorque = brakeForce;
         }
         else
         {
