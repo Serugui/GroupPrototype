@@ -13,13 +13,12 @@ public class DriveLocomotionV2 : MonoBehaviour
     //Car SETUP
 
     public int maxSpeed = 120;//The maximum speed that the car can reach in km/h.
-    public int maxReverseSpeed = 45; //The maximum speed that the car can reach while going on reverse in km/h.
-    public int accelerationMultiplier = 2;
-    public int maxSteeringAngle = 27;
-    public float steeringSpeed = 0.5f; //Maybe not necessary with phisical steering wheel
-    public int brakeForce = 350; //The strenkgth of the wheel brakes.
-    public int decelerationMultiplier = 2; //How fast it decelerates
-    public int handbrakeDriftMultiplier = 5; //How much grip the car loses when the user hit the handbrake.
+    public int accelerationMultiplier = 6;
+    public int maxSteeringAngle = 30;
+    //public float steeringSpeed = 0.5f; //Maybe not necessary with phisical steering wheel
+    public int brakeForce = 300; //The strenkgth of the wheel brakes.
+    public float decelerationMultiplier = 0.010f; //How fast it decelerates
+    public float brakeDriftMultiplier = 0.5f; //How much grip the car loses when the user hit the handbrake.
     public Vector3 bodyMassCenter; //Contains the center of mass of the car.
 
     //Car Data
@@ -45,15 +44,23 @@ public class DriveLocomotionV2 : MonoBehaviour
     public GameObject rearRightMesh;
     public WheelCollider rearRightCollider;
 
+
+    // The following particle systems are used as tire smoke when the car drifts.
+    public ParticleSystem RLWParticleSystem;
+    public ParticleSystem RRWParticleSystem;
+
+    [Space(10)]
+    // The following trail renderers are used as tire skids when the car loses traction.
+    public TrailRenderer RLWTireSkid;
+    public TrailRenderer RRWTireSkid;
+
     //Private variables
 
     Rigidbody carRigidbody; // Stores the car's rigidbody.
-    float steeringAxis; // Used to know whether the steering wheel has reached the maximum value. It goes from -1 to 1.
-    float throttleAxis; // Used to know whether the throttle has reached the maximum value. It goes from -1 to 1.
     float driftingAxis;
     float localVelocityZ;
     float localVelocityX;
-    bool deceleratingCar;
+
 
     //Start drifting values
     WheelFrictionCurve FLwheelFriction;
@@ -139,10 +146,13 @@ public class DriveLocomotionV2 : MonoBehaviour
 
     void Locomotion()
     {
-        float braking = brakePedal.ReadValue<float>();
-
+        
         HandleSteering();
         ThrottleOn();
+        Breaks();
+        DecelerateCar();
+        AnimateWheelMeshes();
+
     }
 
     void HandleSteering()
@@ -158,19 +168,19 @@ public class DriveLocomotionV2 : MonoBehaviour
 
     void ThrottleOn()
     {
+       
+         DriftCarPS();
+        
+
         float acceleration = accelerate.ReadValue<float>();
 
-        // Smoothly adjust the throttle power
-        acceleration = Mathf.Clamp(acceleration + (Time.deltaTime * 3f), 0f, 1f);
 
-        // If the car is going backwards, apply brakes to avoid strange behaviors.
+        // If the car is going backwards, apply brakes to avoid strange behaviors or if is not accelerating and slow, stop.
         if (localVelocityZ < -1f)
         {
             // Apply brakes to stop the car from moving backward.
-            frontLeftCollider.brakeTorque = brakeForce;
-            frontRightCollider.brakeTorque = brakeForce;
-            rearLeftCollider.brakeTorque = brakeForce;
-            rearRightCollider.brakeTorque = brakeForce;
+            Breaks();
+            
         }
         else
         {
@@ -198,6 +208,126 @@ public class DriveLocomotionV2 : MonoBehaviour
                 rearRightCollider.motorTorque = 0;
             }
         }
+    }
+
+    void Breaks()
+    {
+        float braking = brakePedal.ReadValue<float>();
+        float actualBrakeForce = brakeForce * braking; // Multiplicar el valor del pedal por la fuerza de frenado máxima
+
+        if (braking > 0f)
+        {
+            isTractionLocked = true;
+            frontLeftCollider.brakeTorque = actualBrakeForce;
+            frontRightCollider.brakeTorque = actualBrakeForce;
+            rearLeftCollider.brakeTorque = actualBrakeForce;
+            rearRightCollider.brakeTorque = actualBrakeForce;
+
+            if (isDrifting == true)
+            {
+                Vector3 driftForce = carRigidbody.velocity.normalized * brakeDriftMultiplier;
+                carRigidbody.AddForce(driftForce);
+            }
+
+        }
+        else
+        {
+            isTractionLocked = false;
+
+        }
+
+        
+    }
+
+   
+        public void DecelerateCar()
+    {
+        float acceleration = accelerate.ReadValue<float>();
+        if (acceleration == 0)
+        {
+            carRigidbody.velocity *= 1f / (1f + decelerationMultiplier);
+            // Since we want to decelerate the car, we are going to remove the torque from the wheels of the car.
+            frontLeftCollider.motorTorque = 0;
+            frontRightCollider.motorTorque = 0;
+            rearLeftCollider.motorTorque = 0;
+            rearRightCollider.motorTorque = 0;
+            // If the magnitude of the car's velocity is less than 0.25f (very slow velocity), then stop the car completely and
+            // also cancel the invoke of this method.
+            if (carRigidbody.velocity.magnitude < 1.5f)
+            {
+                carRigidbody.velocity = Vector3.zero;
+            }
+        }
+    }
+
+
+
+    public void DriftCarPS()
+    {
+        if (Mathf.Abs(localVelocityX) > 2f)
+        {
+            isDrifting = true;
+        }
+        else
+        {
+            isDrifting = false;
+        }
+
+        if (isDrifting)
+        {
+            RLWParticleSystem.Play();
+            RRWParticleSystem.Play();
+        }
+        else if (!isDrifting)
+        {
+            RLWParticleSystem.Stop();
+            RRWParticleSystem.Stop();
+        }
+
+
+
+        if ((isTractionLocked || Mathf.Abs(localVelocityX) > 2f) && Mathf.Abs(carSpeed) > 30f)
+        {
+            RLWTireSkid.emitting = true;
+            RRWTireSkid.emitting = true;
+        }
+        else
+        {
+            RLWTireSkid.emitting = false;
+            RRWTireSkid.emitting = false;
+        }
+
+
+    }
+
+    void AnimateWheelMeshes()
+    {
+       
+            Quaternion FLWRotation;
+            Vector3 FLWPosition;
+            frontLeftCollider.GetWorldPose(out FLWPosition, out FLWRotation);
+            frontLeftMesh.transform.position = FLWPosition;
+            frontLeftMesh.transform.rotation = FLWRotation;
+
+            Quaternion FRWRotation;
+            Vector3 FRWPosition;
+            frontRightCollider.GetWorldPose(out FRWPosition, out FRWRotation);
+            frontRightMesh.transform.position = FRWPosition;
+            frontRightMesh.transform.rotation = FRWRotation;
+
+            Quaternion RLWRotation;
+            Vector3 RLWPosition;
+            rearLeftCollider.GetWorldPose(out RLWPosition, out RLWRotation);
+            rearLeftMesh.transform.position = RLWPosition;
+            rearLeftMesh.transform.rotation = RLWRotation;
+
+            Quaternion RRWRotation;
+            Vector3 RRWPosition;
+            rearRightCollider.GetWorldPose(out RRWPosition, out RRWRotation);
+            rearRightMesh.transform.position = RRWPosition;
+            rearRightMesh.transform.rotation = RRWRotation;
+        
+        
     }
 }
 

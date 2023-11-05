@@ -92,7 +92,7 @@ public partial class @SteeringControls: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""765994ba-1cd5-40cc-970b-01fdb6cea319"",
-                    ""path"": ""<Keyboard>/s"",
+                    ""path"": ""<Keyboard>/space"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
