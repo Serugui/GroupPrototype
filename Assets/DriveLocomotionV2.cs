@@ -239,8 +239,35 @@ public class DriveLocomotionV2 : MonoBehaviour
         
     }
 
-   
-        public void DecelerateCar()
+    // Nitro
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Nitro")
+        {
+
+            StartCoroutine(Nitro());
+
+
+        }
+    }
+
+    IEnumerator Nitro()
+    {
+
+        print(Time.time);
+        yield return new WaitForSeconds(0);
+        print(Time.time);
+        maxSpeed = maxSpeed * 2;
+        accelerationMultiplier = accelerationMultiplier * 2;
+        yield return new WaitForSeconds(5);
+        maxSpeed = maxSpeed/2;
+        accelerationMultiplier = accelerationMultiplier / 2;
+
+
+    }
+
+
+    public void DecelerateCar()
     {
         float acceleration = accelerate.ReadValue<float>();
         if (acceleration == 0)
