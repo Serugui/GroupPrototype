@@ -223,7 +223,7 @@ public class DriveLocomotionV2 : MonoBehaviour
             rearLeftCollider.brakeTorque = actualBrakeForce;
             rearRightCollider.brakeTorque = actualBrakeForce;
 
-            if (isDrifting == true)
+            if (isDrifting == true || localVelocityX > 1f)
             {
                 Vector3 driftForce = carRigidbody.velocity.normalized * brakeDriftMultiplier;
                 carRigidbody.AddForce(driftForce);
